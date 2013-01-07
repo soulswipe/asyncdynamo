@@ -208,7 +208,8 @@ class AsyncDynamoDB(AWSAuthConnection):
         except TypeError:
             json_response = None
 
-        if response.error:
+        if json_response and response.error:
+            # Normal error handling where we have a JSON response from AWS.
             if any((token_error in json_response.get('__type', []) \
                     for token_error in (self.ExpiredSessionError, self.UnrecognizedClientException))):
                 if self.provider.security_token == token_used:
