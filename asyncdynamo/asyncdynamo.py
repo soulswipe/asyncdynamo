@@ -192,7 +192,8 @@ class AsyncDynamoDB(AWSAuthConnection):
             headers=headers,
             body=body,
             validate_cert=self.validate_cert)
-        request.path = '/' # Important! set the path variable for signing by boto. '/' is the path for all dynamodb requests
+        request.path = '/' # Important! set the path variable for signing by boto (<2.7). '/' is the path for all dynamodb requests
+        request.auth_path = '/' # Important! set the auth_path variable for signing by boto(>2.7). '/' is the path for all dynamodb requests
         if self.authenticate_requests:
             self._auth_handler.add_auth(request) # add signature to headers of the request
         self.http_client.fetch(request, functools.partial(self._finish_make_request,
@@ -226,7 +227,7 @@ class AsyncDynamoDB(AWSAuthConnection):
             return callback(None, error=DynamoDBResponseError(response.code, response.body))
         else:
             return callback(json_response, error=None)
-    
+
     def get_item(self, table_name, key, callback, attributes_to_get=None,
             consistent_read=False, object_hook=None):
         '''
