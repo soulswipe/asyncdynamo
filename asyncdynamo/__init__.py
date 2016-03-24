@@ -1,5 +1,5 @@
 #!/bin/env python
-# 
+#
 # Copyright 2010 bit.ly
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -25,7 +25,7 @@ except ImportError:
     raise ImportError("tornado library not installed. Install tornado. https://github.com/facebook/tornado")
 try:
     import boto
-    assert tuple(map(int,boto.Version.split('.'))) >= (2,3,0), "Boto >= 2.3.0 required."
+    assert tuple(map(int,boto.Version.split('.'))) >= (2,39,0), "Boto >= 2.39.0 required."
 except ImportError:
     raise ImportError("boto library not installed. Install boto. https://github.com/boto/boto")
 
