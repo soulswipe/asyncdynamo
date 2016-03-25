@@ -32,7 +32,7 @@ from urlparse import urlparse
 
 from boto.connection import AWSAuthConnection
 from boto.exception import DynamoDBResponseError
-from boto.auth import HmacAuthV3HTTPHandler
+from boto.auth import HmacAuthV4Handler
 from boto.provider import Provider
 
 from async_aws_sts import AsyncAwsSts, InvalidClientTokenIdError
@@ -63,7 +63,7 @@ class AsyncDynamoDB(AWSAuthConnection):
     ServiceName = 'DynamoDB'
     """The name of the Service"""
 
-    Version = '20111205'
+    Version = '20120810'
     """DynamoDB API version."""
 
     ThruputError = "ProvisionedThroughputExceededException"
@@ -77,12 +77,12 @@ class AsyncDynamoDB(AWSAuthConnection):
 
     def __init__(self, aws_access_key_id=None, aws_secret_access_key=None,
                  is_secure=True, port=None, proxy=None, proxy_port=None,
-                 host=None, debug=0, session_token=None, url=None,
+                 host=None, debug=0, session_token=None, endpoint=None,
                  authenticate_requests=True, validate_cert=True, max_sts_attempts=3, ioloop=None):
         if not host:
             host = self.DefaultHost
-        if url is not None:
-            self.url = url
+        if endpoint is not None:
+            self.url = endpoint
             parse_url = urlparse(self.url)
             self.host = parse_url.hostname
             self.port = parse_url.port
@@ -120,7 +120,7 @@ class AsyncDynamoDB(AWSAuthConnection):
             logging.warn("Unable to get session token: %s" % error)
 
     def _required_auth_capability(self):
-        return ['hmac-v3-http']
+        return ['hmac-v4']
 
     def _update_session_token(self, callback, attempts=0, bypass_lock=False):
         '''
@@ -172,7 +172,7 @@ class AsyncDynamoDB(AWSAuthConnection):
                                      creds.secret_key,
                                      creds.session_token)
             # force the correct auth, with the new provider
-            self._auth_handler = HmacAuthV3HTTPHandler(self.host, None, self.provider)
+            self._auth_handler = HmacAuthV4Handler(self.host, None, self.provider)
             while self.pending_requests:
                 request = self.pending_requests.pop()
                 request()
@@ -215,6 +215,10 @@ class AsyncDynamoDB(AWSAuthConnection):
             validate_cert=self.validate_cert)
         request.path = '/' # Important! set the path variable for signing by boto (<2.7). '/' is the path for all dynamodb requests
         request.auth_path = '/' # Important! set the auth_path variable for signing by boto(>2.7). '/' is the path for all dynamodb requests
+        request.params = {}
+        request.port = self.port
+        request.protocol = self.protocol
+        request.host = self.host
         if self.authenticate_requests:
             self._auth_handler.add_auth(request) # add signature to headers of the request
         self.http_client.fetch(request, functools.partial(self._finish_make_request,
