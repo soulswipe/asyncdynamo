@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 import tornado.ioloop
 import tornado.web
+import tornado.httpserver
+from tornado.log import enable_pretty_logging
 from asyncdynamo import asyncdynamo
 from tornado import gen
 from tornado.web import asynchronous
-
 
 DB = None
 
@@ -46,6 +47,7 @@ class MainHandler(tornado.web.RequestHandler):
     def callback(self, res, error=None):
         if error is not None:
             self.finish({"error": error})
+            return
         self.finish({"data": res})
 
     @asynchronous
@@ -57,12 +59,14 @@ class MainHandler(tornado.web.RequestHandler):
         get_items(self.callback)
 
 
-def make_app():
-    return tornado.web.Application([
-        (r"/", MainHandler),
-    ])
+class Application(tornado.web.Application):
+    def __init__(self):
+        enable_pretty_logging()
+        handlers = [(r"/", MainHandler), ]
+        settings = dict(debug=True)
+        super(Application, self).__init__(handlers, **settings)
 
 if __name__ == "__main__":
-    app = make_app()
-    app.listen(8888)
+    http_server = tornado.httpserver.HTTPServer(Application())
+    http_server.listen(8888)
     tornado.ioloop.IOLoop.current().start()
