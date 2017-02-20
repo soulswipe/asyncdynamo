@@ -1,0 +1,8 @@
+asyncdynamo/__init__.py
+asyncdynamo/async_aws_sts.py
+asyncdynamo/asyncdynamo.py
+asyncdynamo.egg-info/PKG-INFO
+asyncdynamo.egg-info/SOURCES.txt
+asyncdynamo.egg-info/dependency_links.txt
+asyncdynamo.egg-info/requires.txt
+asyncdynamo.egg-info/top_level.txt
